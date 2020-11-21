@@ -6,6 +6,7 @@ setuptools.setup(
     description='3D iterative FDFD electromagnetic solver.',
     author='Jesse Lu',
     author_email='mr.jesselu@gmail.com',
+    packages=setuptools.find_packages(),
     python_requires='>=3.6',
     install_requires=["numpy>=1.18.5", "jax>=0.2.4"],
     url='https://github.com/stanfordnqp/jaxwell',

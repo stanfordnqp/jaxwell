@@ -6,7 +6,7 @@ import itertools
 import jax
 import jax.numpy as np
 import numpy as onp
-import vecfield
+import jaxwell.vecfield
 
 
 @dataclasses.dataclass
