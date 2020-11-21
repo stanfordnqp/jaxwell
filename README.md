@@ -13,9 +13,9 @@ assumes `μ = 1` everywhere,
 and implements stretched-coordinate perfectly matched layers (SC-PML)
 for absorbing boundary conditions.
 
-You can install Jaxwell with `pip install ...`,
+You can install Jaxwell with `pip install git+https://github.com/stanfordnqp/jaxwell.git` 
 but the easiest way to get started is to go straight to the example 
-[colaboratory notebook](link here).
+[colaboratory notebook](https://colab.research.google.com/gist/JesseLu/e7cf64ce6278468d509cc8c93de93160/jaxwell-quickstart.ipynb).
 
 References:
 
