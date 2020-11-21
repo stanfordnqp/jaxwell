@@ -3,10 +3,10 @@ from jax.config import config
 config.update("jax_enable_x64", True)
 
 import jax.numpy as np
+from jaxwell import vecfield as vf
+from jaxwell.vecfield import VecField
 import numpy as onp
 import unittest
-import vecfield as vf
-from vecfield import VecField
 
 
 class TestVecField(unittest.TestCase):

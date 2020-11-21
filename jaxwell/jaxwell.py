@@ -1,7 +1,7 @@
 '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.'''
 
-import jaxwell.solver
-import jaxwell.vecfield
+from jaxwell import solver
+from jaxwell import vecfield
 
 
 def _default_monitor_fn(x, errs):

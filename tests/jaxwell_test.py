@@ -2,12 +2,12 @@
 from jax.config import config
 config.update("jax_enable_x64", True)
 
-import jaxwell
+from jaxwell import jaxwell
+from jaxwell import operators
+from jaxwell import solver
+from jaxwell import vecfield
 import numpy as onp
-import operators
-import solver
 import unittest
-import vecfield
 
 
 class TestJaxwell(unittest.TestCase):

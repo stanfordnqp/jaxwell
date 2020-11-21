@@ -5,8 +5,8 @@ import functools
 import itertools
 import jax
 import jax.numpy as np
+from jaxwell import vecfield
 import numpy as onp
-import jaxwell.vecfield
 
 
 @dataclasses.dataclass

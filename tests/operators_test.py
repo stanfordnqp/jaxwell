@@ -4,10 +4,10 @@ config.update("jax_enable_x64", True)
 
 import functools
 import jax.numpy as np
+from jaxwell import operators as ops
+from jaxwell import vecfield
 import numpy as onp
-import operators as ops
 import unittest
-import vecfield
 
 
 class TestOperator(unittest.TestCase):

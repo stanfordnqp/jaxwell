@@ -1,8 +1,8 @@
 '''Loop initialization and iteration for COCG solver, see [Gu2014].'''
 
 import jax
-import jaxwell.operators
-import jaxwell.vecfield
+from jaxwell import operators
+from jaxwell import vecfield
 
 
 def loop_fns(shape, ths, pml_params, eps):
