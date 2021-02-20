@@ -32,6 +32,9 @@ def spatial_diff(x,
                  transpose=False,
                  precision=jax.lax.Precision.HIGHEST):
   '''Spatial difference of `(1, 1, xx, yy, zz)`-shaped `x` along `axis`.'''
+  if x.shape[axis+2] == 1:  # Diff along singular dimension.
+      return np.zeros_like(x)
+
   kernel = np.array(diff_kernel(axis, transpose), dtype=np.complex128)
   return jax.lax.conv_general_dilated(x,
                                       kernel,
