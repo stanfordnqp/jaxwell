@@ -1,6 +1,6 @@
 '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.'''
 
-from jaxwell import operators, solver, vecfield
+from jaxwell import operators, cocg, vecfield
 
 
 def _default_monitor_fn(x, errs):
@@ -55,12 +55,12 @@ def solve(z,
   b = b * pre if adjoint else b * inv_pre
   unpre = lambda x: vecfield.conj(x * inv_pre) if adjoint else x * pre
 
-  init_fn, iter_fn = solver.loop_fns(A, b, eps)
+  init, iter = cocg.cocg(A, b, eps)
 
-  p, r, x, term_err = init_fn(z, b)
+  p, r, x, term_err = init(z, b)
   errs = []
   for i in range(max_iters):
-    p, r, x, err = iter_fn(p, r, x, z)
+    p, r, x, err = iter(p, r, x, z)
     errs.append(err)
     if i % monitor_every_n == 0:
       monitor_fn(unpre(x), errs)
