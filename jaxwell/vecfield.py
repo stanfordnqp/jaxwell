@@ -51,4 +51,4 @@ def conj(x):
   return VecField(*(np.conj(a) for a in x))
 
 def real(x):
-  return VecField(*(np.realconj(a) for a in x))
+  return VecField(*(np.real(a) for a in x))
