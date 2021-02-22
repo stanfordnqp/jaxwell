@@ -1,10 +1,9 @@
 # TODO: Remove.
+import unittest
+import numpy as onp
+from jaxwell import cocg, jaxwell, operators, vecfield
 from jax.config import config
 config.update("jax_enable_x64", True)
-
-from jaxwell import cocg, jaxwell, operators, vecfield
-import numpy as onp
-import unittest
 
 
 class TestJaxwell(unittest.TestCase):
@@ -13,11 +12,10 @@ class TestJaxwell(unittest.TestCase):
     b[0, 0, 5, 5, 5] = 1.
     b = vecfield.VecField(0 * b, 0 * b, b)
     z = vecfield.zeros((1, 1, 10, 10, 10))
-    x, errs = jaxwell.solve(z,
-                            b,
-                            ths=((10, 10), ) * 3,
-                            pml_params=operators.PmlParams(w_eff=0.3),
-                            max_iters=1)
+    params = jaxwell.JaxwellParams(pml_ths=((10, 10), ) * 3,
+                                   pml_params=operators.PmlParams(w_eff=0.3),
+                                   max_iters=1)
+    x, errs = jaxwell.solve(z, b, params=params)
     self.assertIsInstance(x, vecfield.VecField)
     self.assertEqual(x.shape, (1, 1, 10, 10, 10))
     self.assertEqual(len(errs), 1)
@@ -28,12 +26,11 @@ class TestJaxwell(unittest.TestCase):
     b[0, 0, 5, 5, 5] = 1.
     b = vecfield.VecField(0 * b, 0 * b, b)
     z = vecfield.zeros((1, 1, 10, 10, 10))
-    x, errs = jaxwell.solve(z,
-                            b,
-                            ths=((10, 10), ) * 3,
-                            pml_params=operators.PmlParams(w_eff=0.3),
-                            max_iters=1,
-                            adjoint=True)
+    params = jaxwell.JaxwellParams(
+        pml_ths=((10, 10), ) * 3,
+        pml_params=operators.PmlParams(w_eff=0.3),
+        max_iters=1)
+    x, errs = jaxwell.solve(z, b, adjoint=True, params=params)
     self.assertAlmostEqual(errs[0], 0.01358992)
 
 

@@ -2,47 +2,46 @@
 
 from jaxwell import operators, cocg, vecfield
 
+import dataclasses
+from typing import Callable, Tuple
+
 
 def _default_monitor_fn(x, errs):
   pass
 
 
-def solve(z,
-          b,
-          ths,
-          pml_params,
-          eps=1e-6,
-          max_iters=1000,
-          adjoint=False,
-          monitor_fn=_default_monitor_fn,
-          monitor_every_n=100):
-  '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.
+@dataclasses.dataclass
+class JaxwellParams:
+  '''Parameters for FDFD solves.
 
-  Note that this solver requires JAX's 64-bit (double-precision) mode.
-  Specifically, the `z` and `b` inputs, as well as the `x` outputs are all
-  `vecfield.VecField` objects of type `jax.numpy.complex128` and of shape
-  `(1, 1, xx, yy, zz)` (the extra singular dimensions are used for convenience
-  when performing the spatial differencing via convolution operators).
-
-  JAX's 64-bit can be enabled via
-
-    ```
-    from jax.config import config
-    config.update("jax_enable_x64", True)
-    ```
-
-  or equivalent method, see https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#Double-(64bit)-precision
-
-  Args:
-    z: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `ω²ε`.
-    b: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `-iωJ`.
+  Attributes:
     ths: `((-x, +x), (-y, +y), (-z, +z))` PML thicknesses.
     pml_params: `operators.PmlParams` controlling PML parameters.
     eps: Error threshold stopping condition.
     max_iters: Iteration number stopping condition.
-    adjoint: Solve the adjoint problem instead, default `False`.
-    monitor_fn: Function of the form `monitor(x, errs)` used to show progress. 
+    monitor_fn: Function of the form `monitor(x, errs)` used to show progress.
     monitor_every_n: Cadence for which to call `monitor_fn`.
+  '''
+  pml_ths: Tuple[Tuple[int, int], Tuple[int, int],
+                 Tuple[int, int]] = ((10, 10), (10, 10), (10, 10))
+  pml_params: operators.PmlParams = operators.PmlParams()
+  eps: float = 1e-6
+  max_iters: int = 1000000
+  monitor_fn: Callable[[], None] = _default_monitor_fn
+  monitor_every_n: int = 1000
+
+
+def solve(z,
+          b,
+          adjoint=False,
+          params=JaxwellParams()):
+  '''Implementation of a FDFD solve.
+
+  Args:
+    z: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `ω²ε`.
+    b: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `-iωJ`.
+    adjoint: Solve the adjoint problem instead, default `False`.
+    params: `JaxwellParams` options structure.
 
   Returns:
     `(x, errs)` where `x` is the `vecfield.VecField` of `jax.numpy.complex128`
@@ -50,23 +49,29 @@ def solve(z,
   '''
   shape = b.shape
 
-  pre, inv_pre = operators.preconditioners(shape[2:], ths, pml_params)
-  A = lambda x, z: operators.operator(x, z, pre, inv_pre, ths, pml_params)
-  b = b * pre if adjoint else b * inv_pre
-  unpre = lambda x: vecfield.conj(x * inv_pre) if adjoint else x * pre
+  pre, inv_pre = operators.preconditioners(
+      shape[2:], params.pml_ths, params.pml_params)
+  def A(x, z): return operators.operator(
+      x, z, pre, inv_pre, params.pml_ths, params.pml_params)
 
-  init, iter = cocg.cocg(A, b, eps)
+  # Adjoint solve uses the fact that we already know how to symmetrize the
+  # operator, `inv_pre * A * pre == pre * AT * inv_pre`. Note that the resulting
+  # operator is symmetric, but not Hermitian!
+  b = b * pre if adjoint else b * inv_pre
+  def unpre(x): return vecfield.conj(x * inv_pre) if adjoint else x * pre
+
+  init, iter = cocg.cocg(A, b, params.eps)
 
   p, r, x, term_err = init(z, b)
   errs = []
-  for i in range(max_iters):
+  for i in range(params.max_iters):
     p, r, x, err = iter(p, r, x, z)
     errs.append(err)
-    if i % monitor_every_n == 0:
-      monitor_fn(unpre(x), errs)
+    if i % params.monitor_every_n == 0:
+      params.monitor_fn(unpre(x), errs)
     if err <= term_err:
       break
 
-  monitor_fn(unpre(x), errs)
+  params.monitor_fn(unpre(x), errs)
 
   return unpre(x), errs
