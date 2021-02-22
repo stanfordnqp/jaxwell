@@ -1,4 +1,5 @@
 # TODO: Remove.
+import jax
 import unittest
 import numpy as onp
 from jaxwell import cocg, jaxwell, operators, vecfield
@@ -7,6 +8,20 @@ config.update("jax_enable_x64", True)
 
 
 class TestJaxwell(unittest.TestCase):
+  def test_grad(self):
+    b = onp.zeros((1, 1, 10, 10, 10), onp.complex128)
+    b[0, 0, 5, 5, 5] = 1.
+    b = vecfield.VecField(0 * b, 0 * b, b)
+    z = vecfield.zeros((1, 1, 10, 10, 10))
+    params = jaxwell.JaxwellParams(pml_ths=((10, 10), ) * 3,
+                                   pml_params=operators.PmlParams(w_eff=0.3),
+                                   max_iters=1)
+
+    def foo(z, b):
+      return vecfield.norm(jaxwell.jaxwell(params, z, b))
+
+    jax.grad(foo, (0, 1))(z, b)
+
   def test_loop_fns(self):
     b = onp.zeros((1, 1, 10, 10, 10), onp.complex128)
     b[0, 0, 5, 5, 5] = 1.

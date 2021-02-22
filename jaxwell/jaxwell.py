@@ -3,6 +3,8 @@
 from jaxwell import operators, cocg, vecfield
 
 import dataclasses
+from functools import partial
+from jax import custom_vjp
 from typing import Callable, Tuple
 
 
@@ -29,6 +31,46 @@ class JaxwellParams:
   max_iters: int = 1000000
   monitor_fn: Callable[[], None] = _default_monitor_fn
   monitor_every_n: int = 1000
+
+
+@partial(custom_vjp, nondiff_argnums=(0,))
+def jaxwell(params, z, b):
+  '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.
+
+  Note that this solver requires JAX's 64-bit (double-precision) mode which can
+  be enabled via
+
+    ```
+    from jax.config import config
+    config.update("jax_enable_x64", True)
+    ```
+
+  #Double-(64bit)-precision
+  see https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
+
+  Args:
+    params: `JaxwellParams` options structure.
+    z: 3-tuple of `(xx, yy, zz)` arrays of type `jax.numpy.complex128`
+       corresponding to the x-, y-, and z-components of the `ω²ε` term.
+    b: Same as `z` but for the `-iωJ` term.
+  '''
+  x, _ = solve(z, b, params=params)
+  return x
+
+
+def jaxwell_fwd(params, z, b):
+  x, _ = solve(z, b, params=params)
+  return x, (x, z)
+
+
+def jaxwell_bwd(params, res, grad):
+  x, z = res
+  x_adj, _ = solve(z, grad, adjoint=True, params=params)
+  z_grad = vecfield.real(vecfield.conj(x_adj) * x)
+  return z_grad, x_adj
+
+
+jaxwell.defvjp(jaxwell_fwd, jaxwell_bwd)
 
 
 def solve(z,
