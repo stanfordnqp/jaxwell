@@ -1,1 +1,1 @@
-from jaxwell.jaxwell import jaxwell, JaxwellParams
+from .jaxwell import jaxwell, JaxwellParams
