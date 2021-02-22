@@ -44,6 +44,8 @@ class TestVecField(unittest.TestCase):
   def test_conj(self):
     self.assertEqual(vf.conj(VecField(1 + 1j, 2j, 3)), VecField(1 - 1j, -2j, 3))
 
+  def test_real(self):
+    self.assertEqual(vf.conj(VecField(1 + 1j, 2j, 3)), VecField(1, 0, 3))
 
 if __name__ == '__main__':
   unittest.main()

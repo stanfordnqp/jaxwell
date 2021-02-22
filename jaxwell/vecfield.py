@@ -49,3 +49,6 @@ def norm(x):
 
 def conj(x):
   return VecField(*(np.conj(a) for a in x))
+
+def real(x):
+  return VecField(*(np.realconj(a) for a in x))
