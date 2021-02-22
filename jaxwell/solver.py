@@ -1,21 +1,17 @@
 '''Loop initialization and iteration for COCG solver, see [Gu2014].'''
 
 import jax
-from jaxwell import operators
 from jaxwell import vecfield
 
 
-def loop_fns(shape, ths, pml_params, eps):
+def loop_fns(A, b, eps):
   '''Returns the loop initialization and iteration functions.'''
-  pre, inv_pre = operators.preconditioners(shape[2:], ths, pml_params)
-  A = lambda x, z: operators.operator(x, z, pre, inv_pre, ths, pml_params)
 
   def loop_init(z, b):
     '''Forms the args that will be used to update stuff.'''
-    b = b * inv_pre
     term_err = eps * vecfield.norm(b)
 
-    x = vecfield.zeros(shape)
+    x = vecfield.zeros(b.shape)
     r = b - A(x, z)
     p = r
 

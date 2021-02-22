@@ -1,7 +1,6 @@
 '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.'''
 
-from jaxwell import solver
-from jaxwell import vecfield
+from jaxwell import operators, solver, vecfield
 
 
 def _default_monitor_fn(x, errs):
@@ -14,6 +13,7 @@ def solve(z,
           pml_params,
           eps=1e-6,
           max_iters=1000,
+          adjoint=False,
           monitor_fn=_default_monitor_fn,
           monitor_every_n=100):
   '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.
@@ -40,6 +40,7 @@ def solve(z,
     pml_params: `operators.PmlParams` controlling PML parameters.
     eps: Error threshold stopping condition.
     max_iters: Iteration number stopping condition.
+    adjoint: Solve the adjoint problem instead, default `False`.
     monitor_fn: Function of the form `monitor(x, errs)` used to show progress. 
     monitor_every_n: Cadence for which to call `monitor_fn`.
 
@@ -47,7 +48,14 @@ def solve(z,
     `(x, errs)` where `x` is the `vecfield.VecField` of `jax.numpy.complex128`
     corresponding to the electric field `E` and `errs` is a list of errors.
   '''
-  init_fn, iter_fn = solver.loop_fns(b.shape, ths, pml_params, eps)
+  shape = b.shape
+
+  pre, inv_pre = operators.preconditioners(shape[2:], ths, pml_params)
+  A = lambda x, z: operators.operator(x, z, pre, inv_pre, ths, pml_params)
+  b = b * pre if adjoint else b * inv_pre
+  unpre = lambda x: vecfield.conj(x * inv_pre) if adjoint else x * pre
+
+  init_fn, iter_fn = solver.loop_fns(A, b, eps)
 
   p, r, x, term_err = init_fn(z, b)
   errs = []
@@ -55,9 +63,10 @@ def solve(z,
     p, r, x, err = iter_fn(p, r, x, z)
     errs.append(err)
     if i % monitor_every_n == 0:
-      monitor_fn(x, errs)
+      monitor_fn(unpre(x), errs)
     if err <= term_err:
       break
 
-  monitor_fn(x, errs)
-  return x, errs
+  monitor_fn(unpre(x), errs)
+
+  return unpre(x), errs

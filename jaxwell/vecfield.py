@@ -38,6 +38,7 @@ def zeros(shape):
   return VecField(*(np.zeros(shape, np.complex128) for _ in range(3)))
 
 
+# TODO: Check if this hack is still necessary to obtain good performance.
 def dot(x, y):
   z = VecField(*(a * b for a, b in zip(x, y)))
   return sum(np.sum(np.real(c)) + 1j * np.sum(np.imag(c)) for c in z)
@@ -45,3 +46,9 @@ def dot(x, y):
 
 def norm(x):
   return np.sqrt(sum(np.square(np.linalg.norm(a)) for a in x))
+
+def conj(x):
+  return VecField(*(np.conj(a) for a in x))
+
+def real(x):
+  return VecField(*(np.real(a) for a in x))

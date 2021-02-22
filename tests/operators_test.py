@@ -25,6 +25,9 @@ class TestOperator(unittest.TestCase):
                          axis=2,
                          transpose=True),
         np.array([[[[[1, -1, 0]]]]], np.complex128))
+    onp.testing.assert_array_equal(
+        ops.spatial_diff(np.array([[[[[0, 1, 0]]]]], np.complex128), axis=1),
+        np.array([[[[[0, 0, 0]]]]], np.complex128))
 
   def test_scpml_coeffs(self):
     self.assertEqual(
