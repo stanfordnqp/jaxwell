@@ -41,6 +41,9 @@ class TestVecField(unittest.TestCase):
     self.assertEqual(vf.norm(VecField(*(3j * np.ones(3) for _ in range(3)))),
                      9)
 
+  def test_conj(self):
+    self.assertEqual(vf.conj(VecField(1 + 1j, 2j, 3)), VecField(1 - 1j, -2j, 3))
+
 
 if __name__ == '__main__':
   unittest.main()

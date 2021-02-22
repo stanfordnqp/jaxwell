@@ -53,7 +53,7 @@ def solve(z,
   pre, inv_pre = operators.preconditioners(shape[2:], ths, pml_params)
   A = lambda x, z: operators.operator(x, z, pre, inv_pre, ths, pml_params)
   b = b * pre if adjoint else b * inv_pre
-  unpre = lambda x: x * inv_pre if adjoint else x * pre
+  unpre = lambda x: vecfield.conj(x * inv_pre) if adjoint else x * pre
 
   init_fn, iter_fn = solver.loop_fns(A, b, eps)
 
