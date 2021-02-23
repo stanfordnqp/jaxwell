@@ -13,7 +13,7 @@ def _default_monitor_fn(x, errs):
 
 
 @dataclasses.dataclass
-class JaxwellParams:
+class Params:
   '''Parameters for FDFD solves.
 
   Attributes:
@@ -34,7 +34,7 @@ class JaxwellParams:
 
 
 @partial(custom_vjp, nondiff_argnums=(0,))
-def jaxwell(params, z, b):
+def solve(params, z, b):
   '''Solves `(∇ x ∇ x - ω²ε) E = -iωJ` for `E`.
 
   Note that this solver requires JAX's 64-bit (double-precision) mode which can
@@ -49,41 +49,41 @@ def jaxwell(params, z, b):
   see https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html
 
   Args:
-    params: `JaxwellParams` options structure.
+    params: `Params` options structure.
     z: 3-tuple of `(xx, yy, zz)` arrays of type `jax.numpy.complex128`
        corresponding to the x-, y-, and z-components of the `ω²ε` term.
     b: Same as `z` but for the `-iωJ` term.
   '''
-  x, _ = solve(z, b, params=params)
+  x, _ = solve_impl(z, b, params=params)
   return x
 
 
-def jaxwell_fwd(params, z, b):
-  x, _ = solve(z, b, params=params)
+def solve_fwd(params, z, b):
+  x, _ = solve_impl(z, b, params=params)
   return x, (x, z)
 
 
-def jaxwell_bwd(params, res, grad):
+def solve_bwd(params, res, grad):
   x, z = res
-  x_adj, _ = solve(z, grad, adjoint=True, params=params)
+  x_adj, _ = solve_impl(z, grad, adjoint=True, params=params)
   z_grad = vecfield.real(vecfield.conj(x_adj) * x)
   return z_grad, x_adj
 
 
-jaxwell.defvjp(jaxwell_fwd, jaxwell_bwd)
+solve.defvjp(solve_fwd, solve_bwd)
 
 
-def solve(z,
-          b,
-          adjoint=False,
-          params=JaxwellParams()):
+def solve_impl(z,
+               b,
+               adjoint=False,
+               params=Params()):
   '''Implementation of a FDFD solve.
 
   Args:
     z: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `ω²ε`.
     b: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `-iωJ`.
     adjoint: Solve the adjoint problem instead, default `False`.
-    params: `JaxwellParams` options structure.
+    params: `Params` options structure.
 
   Returns:
     `(x, errs)` where `x` is the `vecfield.VecField` of `jax.numpy.complex128`
