@@ -1,5 +1,6 @@
 # TODO: Remove.
 import jax
+import jax.numpy as np
 import unittest
 import numpy as onp
 from jaxwell import fdfd, operators, vecfield
@@ -29,7 +30,12 @@ class TestJaxwell(unittest.TestCase):
     def foo(z, b):
       return vecfield.norm(fdfd.solve(params, z, b))
 
-    jax.grad(foo, (0, 1))(self.z, self.b)
+    grad_z, grad_b = jax.grad(foo, (0, 1))(self.z, self.b)
+
+    # Used as pseudo-golden tests.
+    self.assertAlmostEqual(sum(np.sum(g) for g in grad_z), -1484.39503965)
+    self.assertAlmostEqual(sum(np.sum(g)
+                               for g in grad_b), 34.22197829+8.38256152e-15j)
 
   def test_loop_fns(self):
     params = fdfd.Params(pml_ths=((10, 10), ) * 3,
