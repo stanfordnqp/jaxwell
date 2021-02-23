@@ -8,10 +8,6 @@ from jax import custom_vjp
 from typing import Callable, Tuple
 
 
-def _default_monitor_fn(x, errs):
-  pass
-
-
 @dataclasses.dataclass
 class Params:
   '''Parameters for FDFD solves.
@@ -29,8 +25,6 @@ class Params:
   pml_params: operators.PmlParams = operators.PmlParams()
   eps: float = 1e-6
   max_iters: int = 1000000
-  monitor_fn: Callable[[], None] = _default_monitor_fn
-  monitor_every_n: int = 1000
 
 
 @partial(custom_vjp, nondiff_argnums=(0,))
@@ -54,8 +48,8 @@ def solve(params, z, b):
        corresponding to the x-, y-, and z-components of the `ω²ε` term.
     b: Same as `z` but for the `-iωJ` term.
   '''
-  x, _ = solve_impl(z, b, params=params)
-  return x
+  x, err = solve_impl(z, b, params=params)
+  return x, err
 
 
 def solve_fwd(params, z, b):
@@ -73,10 +67,17 @@ def solve_bwd(params, res, grad):
 solve.defvjp(solve_fwd, solve_bwd)
 
 
+def _default_monitor_fn(x, errs):
+  pass
+
+
 def solve_impl(z,
                b,
                adjoint=False,
-               params=Params()):
+               params=Params(),
+               monitor_fn=_default_monitor_fn,
+               monitor_every_n=1000,
+               ):
   '''Implementation of a FDFD solve.
 
   Args:
@@ -109,11 +110,11 @@ def solve_impl(z,
   for i in range(params.max_iters):
     p, r, x, err = iter(p, r, x, z)
     errs.append(err)
-    if i % params.monitor_every_n == 0:
-      params.monitor_fn(unpre(x), errs)
+    if i % monitor_every_n == 0:
+      monitor_fn(unpre(x), errs)
     if err <= term_err:
       break
 
-  params.monitor_fn(unpre(x), errs)
+  monitor_fn(unpre(x), errs)
 
   return unpre(x), errs
