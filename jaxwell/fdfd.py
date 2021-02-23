@@ -5,6 +5,7 @@ from jaxwell import operators, cocg, vecfield
 import dataclasses
 from functools import partial
 from jax import custom_vjp
+import jax.numpy as np
 from typing import Callable, Tuple
 
 
@@ -17,8 +18,6 @@ class Params:
     pml_params: `operators.PmlParams` controlling PML parameters.
     eps: Error threshold stopping condition.
     max_iters: Iteration number stopping condition.
-    monitor_fn: Function of the form `monitor(x, errs)` used to show progress.
-    monitor_every_n: Cadence for which to call `monitor_fn`.
   '''
   pml_ths: Tuple[Tuple[int, int], Tuple[int, int],
                  Tuple[int, int]] = ((10, 10), (10, 10), (10, 10))
@@ -61,7 +60,7 @@ def solve_bwd(params, res, grad):
   x, z = res
   x_grad, _ = grad
   x_adj, _ = solve_impl(z, x_grad, adjoint=True, params=params)
-  z_grad = vecfield.real(vecfield.conj(x_adj) * x)
+  z_grad = tuple(np.real(np.conj(a) * b) for a, b in zip(x_adj, x))
   return z_grad, x_adj
 
 
@@ -82,8 +81,9 @@ def solve_impl(z,
   '''Implementation of a FDFD solve.
 
   Args:
-    z: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `ω²ε`.
-    b: `vecfield.VecField` of `jax.numpy.complex128` corresponding to `-iωJ`.
+    z: 3-tuple of `(xx, yy, zz)` arrays of type `jax.numpy.complex128`
+       corresponding to the x-, y-, and z-components of the `ω²ε` term.
+    b: Same as `z` but for the `-iωJ` term.
     adjoint: Solve the adjoint problem instead, default `False`.
     params: `Params` options structure.
 
@@ -91,10 +91,11 @@ def solve_impl(z,
     `(x, errs)` where `x` is the `vecfield.VecField` of `jax.numpy.complex128`
     corresponding to the electric field `E` and `errs` is a list of errors.
   '''
-  shape = b.shape
+  shape = z[0].shape
+  z, b = vecfield.from_tuple(z), vecfield.from_tuple(b)
 
   pre, inv_pre = operators.preconditioners(
-      shape[2:], params.pml_ths, params.pml_params)
+      shape, params.pml_ths, params.pml_params)
   def A(x, z): return operators.operator(
       x, z, pre, inv_pre, params.pml_ths, params.pml_params)
 
@@ -118,4 +119,4 @@ def solve_impl(z,
 
   monitor_fn(unpre(x), errs)
 
-  return unpre(x), errs
+  return vecfield.to_tuple(unpre(x)), errs

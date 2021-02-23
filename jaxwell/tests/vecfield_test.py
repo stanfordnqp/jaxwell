@@ -1,12 +1,11 @@
 # TODO: Remove.
+import unittest
+import numpy as onp
+from jaxwell.vecfield import VecField
+from jaxwell import vecfield as vf
+import jax.numpy as np
 from jax.config import config
 config.update("jax_enable_x64", True)
-
-import jax.numpy as np
-from jaxwell import vecfield as vf
-from jaxwell.vecfield import VecField
-import numpy as onp
-import unittest
 
 
 class TestVecField(unittest.TestCase):
@@ -42,10 +41,20 @@ class TestVecField(unittest.TestCase):
                      9)
 
   def test_conj(self):
-    self.assertEqual(vf.conj(VecField(1 + 1j, 2j, 3)), VecField(1 - 1j, -2j, 3))
+    self.assertEqual(vf.conj(VecField(1 + 1j, 2j, 3)),
+                     VecField(1 - 1j, -2j, 3))
 
   def test_real(self):
     self.assertEqual(vf.real(VecField(1 + 1j, 2j, 3)), VecField(1, 0, 3))
+
+  def test_from_tuple(self):
+    self.assertEqual(vf.from_tuple((np.zeros((2, 3, 4)),) * 3).shape,
+                     (1, 1, 2, 3, 4))
+
+  def test_to_tuple(self):
+    self.assertEqual(vf.to_tuple(vf.zeros((1, 1, 2, 3, 4)))[0].shape,
+                     (2, 3, 4))
+
 
 if __name__ == '__main__':
   unittest.main()

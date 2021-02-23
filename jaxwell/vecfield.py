@@ -47,8 +47,18 @@ def dot(x, y):
 def norm(x):
   return np.sqrt(sum(np.square(np.linalg.norm(a)) for a in x))
 
+
 def conj(x):
   return VecField(*(np.conj(a) for a in x))
 
+
 def real(x):
   return VecField(*(np.real(a) for a in x))
+
+
+def from_tuple(x):
+  return VecField(*(np.reshape(a, (1, 1) + a.shape) for a in x))
+
+
+def to_tuple(x):
+  return tuple(np.reshape(a, a.shape[2:]) for a in x)
