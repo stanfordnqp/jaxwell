@@ -14,14 +14,14 @@ class Params:
   '''Parameters for FDFD solves.
 
   Attributes:
-    ths: `((-x, +x), (-y, +y), (-z, +z))` PML thicknesses.
-    pml_params: `operators.PmlParams` controlling PML parameters.
+    pml_ths: `((-x, +x), (-y, +y), (-z, +z))` PML thicknesses.
+    pml_omega: Effective angular frequency to tune the PML to.
     eps: Error threshold stopping condition.
     max_iters: Iteration number stopping condition.
   '''
   pml_ths: Tuple[Tuple[int, int], Tuple[int, int],
                  Tuple[int, int]] = ((10, 10), (10, 10), (10, 10))
-  pml_params: operators.PmlParams = operators.PmlParams()
+  pml_omega: float = 1.
   eps: float = 1e-6
   max_iters: int = 1000000
 
@@ -61,7 +61,8 @@ def solve_bwd(params, res, grad):
   x_grad, _ = grad
   x_adj, _ = solve_impl(z, x_grad, adjoint=True, params=params)
   z_grad = tuple(np.real(np.conj(a) * b) for a, b in zip(x_adj, x))
-  return z_grad, x_adj
+  b_grad = tuple(np.conj(a) for a in x_adj)
+  return z_grad, b_grad
 
 
 solve.defvjp(solve_fwd, solve_bwd)
@@ -93,11 +94,12 @@ def solve_impl(z,
   '''
   shape = z[0].shape
   z, b = vecfield.from_tuple(z), vecfield.from_tuple(b)
+  pml_params = operators.PmlParams(w_eff=params.pml_omega)
 
   pre, inv_pre = operators.preconditioners(
-      shape, params.pml_ths, params.pml_params)
+      shape, params.pml_ths, pml_params)
   def A(x, z): return operators.operator(
-      x, z, pre, inv_pre, params.pml_ths, params.pml_params)
+      x, z, pre, inv_pre, params.pml_ths, pml_params)
 
   # Adjoint solve uses the fact that we already know how to symmetrize the
   # operator, `inv_pre * A * pre == pre * AT * inv_pre`. Note that the resulting
