@@ -61,7 +61,8 @@ def solve_bwd(params, res, grad):
   x_grad, _ = grad
   x_adj, _ = solve_impl(z, x_grad, adjoint=True, params=params)
   z_grad = tuple(np.real(np.conj(a) * b) for a, b in zip(x_adj, x))
-  return z_grad, x_adj
+  b_grad = tuple(np.conj(a) for a in x_adj)
+  return z_grad, b_grad
 
 
 solve.defvjp(solve_fwd, solve_bwd)
