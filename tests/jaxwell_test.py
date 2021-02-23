@@ -2,7 +2,7 @@
 import jax
 import unittest
 import numpy as onp
-from jaxwell import cocg, jaxwell, operators, vecfield
+from jaxwell import jaxwell, operators, vecfield
 from jax.config import config
 config.update("jax_enable_x64", True)
 

@@ -102,7 +102,7 @@ def solve_impl(z,
   b = b * pre if adjoint else b * inv_pre
   def unpre(x): return vecfield.conj(x * inv_pre) if adjoint else x * pre
 
-  init, iter = cocg.cocg(A, b, params.eps)
+  init, iter = cocg.solver(A, b, params.eps)
 
   p, r, x, term_err = init(z, b)
   errs = []
