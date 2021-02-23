@@ -1,1 +1,1 @@
-from jaxwell.jaxwell import solve
+from jaxwell.fdfd import solve, Params

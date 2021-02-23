@@ -4,10 +4,10 @@ import jax
 from jaxwell import vecfield
 
 
-def loop_fns(A, b, eps):
+def solver(A, b, eps):
   '''Returns the loop initialization and iteration functions.'''
 
-  def loop_init(z, b):
+  def init(z, b):
     '''Forms the args that will be used to update stuff.'''
     term_err = eps * vecfield.norm(b)
 
@@ -18,7 +18,7 @@ def loop_fns(A, b, eps):
     return p, r, x, term_err
 
   @jax.jit
-  def loop_iter(p, r, x, z):
+  def iter(p, r, x, z):
     '''Run the iteration loop `n` times.'''
     rho = vecfield.dot(r, r)
     v = A(p, z)
@@ -30,4 +30,4 @@ def loop_fns(A, b, eps):
     err = vecfield.norm(r)
     return p, r, x, err
 
-  return loop_init, loop_iter
+  return init, iter
