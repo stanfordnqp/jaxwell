@@ -53,13 +53,14 @@ def solve(params, z, b):
 
 
 def solve_fwd(params, z, b):
-  x, _ = solve_impl(z, b, params=params)
-  return x, (x, z)
+  x, err = solve(params, z, b)
+  return (x, err), (x, z)
 
 
 def solve_bwd(params, res, grad):
   x, z = res
-  x_adj, _ = solve_impl(z, grad, adjoint=True, params=params)
+  x_grad, _ = grad
+  x_adj, _ = solve_impl(z, x_grad, adjoint=True, params=params)
   z_grad = vecfield.real(vecfield.conj(x_adj) * x)
   return z_grad, x_adj
 
