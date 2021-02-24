@@ -1,12 +1,31 @@
-# Jaxwell: GPU-accelerated 3D iterative FDFD electromagnetic solver
+# Jaxwell: GPU-accelerated, differentiable 3D iterative FDFD electromagnetic solver
 
 Jaxwell is [JAX](https://github.com/google/jax) +
 [Maxwell](https://github.com/stanfordnqp/maxwell-b):
-an iterative solver for solving the the finite-difference frequency-domain
-Maxwell equations on NVIDIA GPUs. 
+an iterative solver for solving the finite-difference frequency-domain
+Maxwell equations on NVIDIA GPUs.
+Jaxwell is differentiable and fits seamlessly in the JAX ecosystem,
+enabling nanophotonic inverse design problems to be cast as ML training jobs
+and take advantage of the tsunami of innovations
+in ML-specific hardware, software, and algorithms.
 
-Jaxwell solves the equation `(∇ x ∇ x - ω²ε) E = -iωJ`
-for the electric field `E`.
+Jaxwell is a finite-difference frequency-domain solver
+that finds solutions to the time-harmonic Maxwell's equations, specifically:
+
+```
+(∇ x ∇ x - ω²ε) E = -iωJ
+```
+
+for the electric field `E` via the API
+
+```python
+x, err = jaxwell.solve(params, z, b)
+```
+
+where `E → x`, `ω²ε → z`, `-iωJ → b`, 
+`params` controls how the solve proceeds iteratively, and
+`err` is the error in the solution.
+
 Jaxwell uses
 [dimensionless units](https://meep.readthedocs.io/en/latest/Introduction/#units-in-meep),
 assumes `μ = 1` everywhere,
@@ -15,7 +34,7 @@ for absorbing boundary conditions.
 
 You can install Jaxwell with `pip install git+https://github.com/stanfordnqp/jaxwell.git` 
 but the easiest way to get started is to go straight to the example 
-[colaboratory notebook](https://colab.research.google.com/gist/JesseLu/e7cf64ce6278468d509cc8c93de93160/jaxwell-quickstart.ipynb).
+[colaboratory notebook](https://colab.research.google.com/gist/JesseLu/1e030fd8ca3fcbca7148cef315bc2ba7/differentiable-jaxwell.ipynb).
 
 References:
 
