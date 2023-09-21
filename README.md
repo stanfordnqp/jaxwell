@@ -32,9 +32,9 @@ assumes `μ = 1` everywhere,
 and implements stretched-coordinate perfectly matched layers (SC-PML)
 for absorbing boundary conditions.
 
-You can install Jaxwell with `pip install git+https://github.com/stanfordnqp/jaxwell.git` 
+You can install Jaxwell with `pip install git+https://github.com/jan-david-fischbach/jaxwell.git` 
 but the easiest way to get started is to go straight to the example 
-[colaboratory notebook](https://colab.research.google.com/gist/JesseLu/1e030fd8ca3fcbca7148cef315bc2ba7/differentiable-jaxwell.ipynb).
+[colaboratory notebook](https://colab.research.google.com/github/jan-david-fischbach/jaxwell/blob/main/example/colab.ipynb).
 
 References:
 

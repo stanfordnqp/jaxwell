@@ -1,0 +1,5 @@
+.vscode
+build
+jaxwell.egg-info
+venv
+*__pycache__
