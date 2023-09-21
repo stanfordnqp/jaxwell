@@ -1,8 +1,11 @@
 import jax.numpy as np
-from typing import Any, NamedTuple
+from typing import Any
+from dataclasses import dataclass
+from jax.tree_util import register_pytree_node_class
 
-
-class VecField(NamedTuple):
+@register_pytree_node_class
+@dataclass
+class VecField():
   '''Represents a 3-tuple of arrays.'''
   x: Any
   y: Any
@@ -32,6 +35,24 @@ class VecField(NamedTuple):
 
   def __rmul__(y, x):
     return VecField(*(x * b for b in y))
+  
+  def __getitem__(self, i):
+    return (self.x, self.y, self.z)[i]
+  
+  def __len__(self):
+    return 3
+  
+  def __repr__(self):
+    return "Vecfield(x={}, y={}, z={})".format(self.x, self.y, self.z)
+
+  def tree_flatten(self):
+    children = (self.x, self.y, self.z)
+    aux_data=None
+    return (children, aux_data)
+
+  @classmethod
+  def tree_unflatten(cls, aux_data, children):
+    return cls(*children)
 
 
 def zeros(shape):
