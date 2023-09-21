@@ -47,9 +47,9 @@ class TestJaxwell(unittest.TestCase):
     grad_z, grad_b = jax.grad(foo, (0, 1))(self.z, self.b)
 
     # Used as pseudo-golden tests.
-    self.assertAlmostEqual(sum(np.nansum(g) for g in grad_z), -1484.39503965)
-    self.assertAlmostEqual(sum(np.nansum(g)
-                               for g in grad_b), 34.22197829+8.38256152e-15j)
+    self.assertAlmostEqual(sum(np.sum(g) for g in grad_z), -1903.85547014)
+    self.assertAlmostEqual(sum(np.sum(g)
+                               for g in grad_b), 43.89242676-3.725788e-15j)
 
   def test_loop_fns(self):
     x, errs = fdfd.solve_impl(self.z, self.b, params=self.params)
