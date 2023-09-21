@@ -13,6 +13,11 @@ class TestVecField(unittest.TestCase):
     self.assertEqual(vf.zeros((10, 20, 30)).shape, (10, 20, 30))
     self.assertEqual(vf.zeros((10, 20, 30)).dtype, np.complex128)
 
+  def test_not_tuple(self):
+    v = vf.zeros((10, 20, 30))
+    self.assertTrue(isinstance(v, VecField))
+    self.assertFalse(isinstance(v, tuple))
+
   def test_as_array(self):
     self.assertIsInstance(
         VecField(*(onp.zeros(5) for _ in range(3))).as_array().x, np.ndarray)

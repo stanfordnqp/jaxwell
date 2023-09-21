@@ -6,6 +6,7 @@ import numpy as onp
 from jaxwell import fdfd, operators, vecfield
 from jax.config import config
 config.update("jax_enable_x64", True)
+#config.update("jax_debug_nans", True)
 
 
 class TestJaxwell(unittest.TestCase):
@@ -22,16 +23,33 @@ class TestJaxwell(unittest.TestCase):
     x, err = fdfd.solve(self.params, self.z, self.b)
     self.assertAlmostEqual(err, 35.25115523)
 
+  def test_norm_grad(self):
+    def foo(a):
+      return np.linalg.norm(a)
+    b = onp.zeros((10, 10, 10), onp.complex128)
+    grad_x = jax.grad(foo)(b)
+    print(grad_x)
+
+  def test_vecfield_grad(self):
+    def foo(a):
+      return vecfield.norm(a)
+    
+    grad_a = jax.grad(foo)(self.b)
+    print(grad_a)
+
   def test_grad(self):
+
     def foo(z, b):
-      return vecfield.norm(fdfd.solve(self.params, z, b))
+      res, err = fdfd.solve(self.params, z, b)
+      norm = vecfield.norm(res)
+      return norm
 
     grad_z, grad_b = jax.grad(foo, (0, 1))(self.z, self.b)
 
     # Used as pseudo-golden tests.
-    self.assertAlmostEqual(sum(np.sum(g) for g in grad_z), -1484.39503965)
+    self.assertAlmostEqual(sum(np.sum(g) for g in grad_z), -1903.85547014)
     self.assertAlmostEqual(sum(np.sum(g)
-                               for g in grad_b), 34.22197829+8.38256152e-15j)
+                               for g in grad_b), 43.89242676-3.725788e-15j)
 
   def test_loop_fns(self):
     x, errs = fdfd.solve_impl(self.z, self.b, params=self.params)
