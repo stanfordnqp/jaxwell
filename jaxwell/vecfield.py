@@ -45,7 +45,8 @@ def dot(x, y):
 
 
 def norm(x):
-  return np.sqrt(sum(np.square(np.linalg.norm(a)) for a in x))
+  a = np.stack(x)
+  return np.linalg.norm(a)
 
 
 def conj(x):
