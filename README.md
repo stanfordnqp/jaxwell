@@ -1,3 +1,6 @@
+> **Warning**:
+> This repo is no longer being maintained, please use https://github.com/jan-david-fischbach/jaxwell instead!
+
 # Jaxwell: GPU-accelerated, differentiable 3D iterative FDFD electromagnetic solver
 
 Jaxwell is [JAX](https://github.com/google/jax) +
